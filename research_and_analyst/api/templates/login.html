@@ -1,87 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login | ShodhAI</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/static/css/styles.css" />
-
-  <style>
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .toggle-password {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 1.1rem;
-      color: #475569;
-      transition: color 0.2s ease;
-      user-select: none;
-    }
-
-    .toggle-password:hover {
-      color: #2563eb;
-    }
-  </style>
 </head>
 
 <body>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h2>🔐 Login</h2>
+  <main class="auth-shell">
+    <section class="auth-brand" aria-label="ShodhAI">
+      <div class="brand-lockup">
+        <span class="brand-mark">S</span>
+        <span class="brand-name">ShodhAI</span>
+      </div>
 
-      {% if error %}
-        <p class="error">{{ error }}</p>
-      {% endif %}
+      <div class="brand-tagline">
+        <h1>Research reports, assembled end to end.</h1>
+        <p>Run analyst-style topic exploration, source-backed synthesis, and document export from one focused workspace.</p>
+      </div>
 
-      <form method="post" action="/login">
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          required
-        />
-
-        <div class="password-wrapper">
-          <input
-            type="password"
-            name="password"
-            id="login-password"
-            placeholder="Password"
-            required
-          />
-          <span class="toggle-password" id="toggleLoginPassword">👁</span>
+      <div class="brand-metrics" aria-label="Platform capabilities">
+        <div class="metric">
+          <strong>AI</strong>
+          <span>Analyst workflow</span>
         </div>
+        <div class="metric">
+          <strong>DOCX</strong>
+          <span>Report export</span>
+        </div>
+        <div class="metric">
+          <strong>PDF</strong>
+          <span>Shareable output</span>
+        </div>
+      </div>
+    </section>
 
-        <button type="submit">Login</button>
-      </form>
+    <section class="auth-panel">
+      <div class="auth-card">
+        <p class="eyebrow">Secure workspace</p>
+        <h2>Sign in</h2>
+        <p class="subtitle">Continue to your research dashboard.</p>
 
-      <p class="switch">
-        Don’t have an account?
-        <a href="/signup">Signup here</a>
-      </p>
-    </div>
-  </div>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
 
-  <script>
-    const toggleLoginPassword = document.getElementById("toggleLoginPassword");
-    const loginPassword = document.getElementById("login-password");
+        <form method="post" action="/login" class="field-stack">
+          <div class="field">
+            <label for="login-username">Username</label>
+            <input id="login-username" type="text" name="username" autocomplete="username" required />
+          </div>
 
-    toggleLoginPassword.addEventListener("click", () => {
-      const type =
-        loginPassword.getAttribute("type") === "password"
-          ? "text"
-          : "password";
-      loginPassword.setAttribute("type", type);
-      toggleLoginPassword.textContent =
-        type === "password" ? "👁" : "🙈";
-    });
-  </script>
+          <div class="field password-field">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" name="password" autocomplete="current-password" required />
+            <button class="toggle-password" type="button" data-password-toggle="login-password" aria-label="Show password">SHOW</button>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit">Sign in</button>
+          </div>
+        </form>
+
+        <p class="switch">No account yet? <a href="/signup">Create one</a></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/js/app.js"></script>
 </body>
+
 </html>

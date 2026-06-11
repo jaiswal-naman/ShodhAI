@@ -3,100 +3,97 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Report Progress | ShodhAI</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/static/css/styles.css" />
-
-  <style>
-    #spinner-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(3px);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      color: white;
-      font-family: sans-serif;
-    }
-
-    .spinner {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #3498db;
-      border-radius: 50%;
-      width: 70px;
-      height: 70px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 15px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
 </head>
 
 <body>
-  <div class="report-container">
-    <div class="card">
-      <h2>Topic: {{ topic }}</h2>
-
-      {% if not pdf_path %}
-      <p class="subtitle">Analyst personas are ready. Add optional feedback, then generate the final DOCX and PDF.</p>
-
-      <form id="feedbackForm" method="post" action="/submit_feedback">
-        <input type="hidden" name="topic" value="{{ topic }}">
-        <input type="hidden" name="thread_id" value="{{ thread_id }}">
-
-        <textarea name="feedback" rows="6" placeholder="Optional feedback for the analyst team...">{{ feedback }}</textarea>
-
-        <button type="submit">Generate Final Report</button>
-      </form>
-
-      <p class="note">
-        Feedback is optional. Leave it blank and submit to continue with the generated analysts.
-      </p>
-
-      {% else %}
-      <h3>Final Report Ready!</h3>
-      <div class="downloads">
-        <a href="/download/{{ doc_path | basename }}" class="download-btn">Download DOCX</a>
-        <a href="/download/{{ pdf_path | basename }}" class="download-btn">Download PDF</a>
+  <div class="app-shell">
+    <header class="app-topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark">S</span>
+        <span class="brand-name">ShodhAI</span>
       </div>
-      <p class="subtitle">Your report was successfully generated.</p>
-      {% endif %}
+      <a class="button button-secondary" href="/dashboard">New report</a>
+    </header>
+
+    <main class="report-shell">
+      <section class="report-panel">
+        <div class="topic-chip">{{ topic }}</div>
+
+        {% if not pdf_path %}
+        <p class="eyebrow">Analyst review</p>
+        <h1>Refine the research direction.</h1>
+        <p class="subtitle">The analyst set is ready. Add guidance if you want to steer emphasis, then run the final document pass.</p>
+
+        <div class="report-grid">
+          <div class="step">
+            <b>Analysts</b>
+            <span>Generated for this topic.</span>
+          </div>
+          <div class="step">
+            <b>Feedback</b>
+            <span>Optional before writing.</span>
+          </div>
+          <div class="step">
+            <b>Export</b>
+            <span>DOCX and PDF output.</span>
+          </div>
+        </div>
+
+        <form id="feedbackForm" method="post" action="/submit_feedback" class="field-stack" data-loading-text="Generating final report...">
+          <input type="hidden" name="topic" value="{{ topic }}">
+          <input type="hidden" name="thread_id" value="{{ thread_id }}">
+
+          <div class="field">
+            <label for="feedback">Feedback</label>
+            <textarea id="feedback" name="feedback" placeholder="Example: focus on enterprise examples, recent risks, and practical recommendations.">{{ feedback }}</textarea>
+          </div>
+
+          <button type="submit">Generate final report</button>
+        </form>
+
+        <p class="note">Leave feedback blank to continue with the generated analyst plan.</p>
+
+        {% else %}
+        <p class="eyebrow">Final export</p>
+        <h1>Report ready.</h1>
+        <p class="subtitle">The final research report is available in editable and shareable formats.</p>
+
+        <div class="report-grid">
+          <div class="step">
+            <b>Research</b>
+            <span>Completed.</span>
+          </div>
+          <div class="step">
+            <b>DOCX</b>
+            <span>Editable report file.</span>
+          </div>
+          <div class="step">
+            <b>PDF</b>
+            <span>Presentation-ready export.</span>
+          </div>
+        </div>
+
+        <div class="downloads">
+          <a href="/download/{{ doc_path | basename }}" class="download-btn">Download DOCX</a>
+          <a href="/download/{{ pdf_path | basename }}" class="download-btn">Download PDF</a>
+        </div>
+        {% endif %}
+      </section>
+    </main>
+  </div>
+
+  <div id="spinner-overlay" class="spinner-overlay" aria-live="polite">
+    <div class="spinner-box">
+      <div class="spinner"></div>
+      <p>Generating final report...</p>
     </div>
   </div>
 
-  <div id="spinner-overlay">
-    <div class="spinner"></div>
-    <p>Generating final report... please wait</p>
-  </div>
-
-  <script>
-    const fbForm = document.getElementById("feedbackForm");
-    const fbSpinner = document.getElementById("spinner-overlay");
-    if (fbForm && fbSpinner) {
-      fbForm.addEventListener("submit", () => {
-        fbSpinner.style.display = "flex";
-        const submitButton = fbForm.querySelector("button[type='submit']");
-        if (submitButton) {
-          submitButton.disabled = true;
-          submitButton.textContent = "Generating...";
-        }
-      });
-    }
-  </script>
+  <script src="/static/js/app.js"></script>
 </body>
 
 </html>
