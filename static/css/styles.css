@@ -374,6 +374,27 @@ h3 {
   min-height: 56px;
 }
 
+.topic-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestion {
+  min-height: 34px;
+  border-color: var(--line);
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 0.78rem;
+  padding: 0 11px;
+}
+
+.suggestion:hover {
+  background: var(--surface-soft);
+  color: var(--ink);
+  box-shadow: none;
+}
+
 .side-panel {
   display: grid;
   gap: 14px;
@@ -403,6 +424,70 @@ h3 {
 .report-shell {
   max-width: 940px;
   margin: 0 auto;
+}
+
+.history-panel {
+  max-width: 1120px;
+  margin: 26px auto 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 24px;
+}
+
+.history-panel h2 {
+  margin: 0 0 18px;
+  font-size: 1.35rem;
+}
+
+.history-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.history-card {
+  display: grid;
+  min-height: 178px;
+  align-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  padding: 14px;
+}
+
+.history-card strong {
+  display: -webkit-box;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.history-card span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.history-meta {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0;
+}
+
+.history-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.history-actions a {
+  font-size: 0.78rem;
 }
 
 .topic-chip {
@@ -454,8 +539,85 @@ h3 {
   margin-top: 24px;
 }
 
+.progress-lane {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 24px;
+}
+
+.progress-lane span {
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: var(--radius);
+  background: rgba(15, 118, 110, 0.07);
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 10px;
+  text-align: center;
+}
+
 .download-btn {
   min-height: 58px;
+}
+
+.preview-panel,
+.source-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.preview-heading span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.preview-panel pre {
+  max-height: 340px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.65;
+  margin: 0;
+  padding: 16px;
+}
+
+.source-panel ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.source-panel li {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  padding: 10px 12px;
+}
+
+.source-panel a {
+  display: block;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
 }
 
 .spinner-overlay {
@@ -496,6 +658,15 @@ h3 {
   margin: 0;
 }
 
+.spinner-steps {
+  color: var(--muted);
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -514,7 +685,9 @@ h3 {
 
   .brand-metrics,
   .report-grid,
-  .downloads {
+  .downloads,
+  .progress-lane,
+  .history-grid {
     grid-template-columns: 1fr;
   }
 

@@ -43,7 +43,13 @@
           </div>
         </div>
 
-        <form id="feedbackForm" method="post" action="/submit_feedback" class="field-stack" data-loading-text="Generating final report...">
+        <div class="progress-lane" aria-label="Generation stages">
+          <span>Analysts ready</span>
+          <span>Source research next</span>
+          <span>Writing and export</span>
+        </div>
+
+        <form id="feedbackForm" method="post" action="/submit_feedback" class="field-stack" data-loading-text="Generating final report..." data-loading-stages="Running live source research|Writing the report body|Exporting DOCX and PDF|Saving report history">
           <input type="hidden" name="topic" value="{{ topic }}">
           <input type="hidden" name="thread_id" value="{{ thread_id }}">
 
@@ -65,15 +71,15 @@
         <div class="report-grid">
           <div class="step">
             <b>Research</b>
-            <span>Completed.</span>
+            <span>{{ source_count }} source links captured.</span>
           </div>
           <div class="step">
             <b>DOCX</b>
-            <span>Editable report file.</span>
+            <span>{{ docx_size | filesize }}.</span>
           </div>
           <div class="step">
             <b>PDF</b>
-            <span>Presentation-ready export.</span>
+            <span>{{ pdf_size | filesize }}.</span>
           </div>
         </div>
 
@@ -81,6 +87,29 @@
           <a href="/download/{{ doc_path | basename }}" class="download-btn">Download DOCX</a>
           <a href="/download/{{ pdf_path | basename }}" class="download-btn">Download PDF</a>
         </div>
+
+        {% if report_preview %}
+        <section class="preview-panel" aria-label="Report preview">
+          <div class="preview-heading">
+            <p class="eyebrow">Live preview</p>
+            <span>{{ created_at | datetime }}</span>
+          </div>
+          <pre>{{ report_preview }}</pre>
+        </section>
+        {% endif %}
+
+        <section class="source-panel" aria-label="Sources">
+          <p class="eyebrow">Sources</p>
+          {% if sources %}
+          <ul>
+            {% for source in sources %}
+            <li><a href="{{ source }}" target="_blank" rel="noreferrer">{{ source }}</a></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="muted">No explicit source URLs were captured in this run. Add Tavily for stronger web citations.</p>
+          {% endif %}
+        </section>
         {% endif %}
       </section>
     </main>
@@ -90,6 +119,7 @@
     <div class="spinner-box">
       <div class="spinner"></div>
       <p>Generating final report...</p>
+      <span class="spinner-steps" data-spinner-steps>Running live source research</span>
     </div>
   </div>
 

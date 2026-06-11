@@ -24,10 +24,30 @@ function setupLoadingForms() {
     form.addEventListener("submit", () => {
       const loadingText = form.dataset.loadingText || "Working...";
       const message = overlay.querySelector("p");
+      const detail = overlay.querySelector("[data-spinner-steps]");
       const submitButton = form.querySelector("button[type='submit']");
+      const defaultStages = [
+        "Creating analyst perspectives",
+        "Running live source research",
+        "Writing the report body",
+        "Exporting DOCX and PDF"
+      ];
+      const stages = (form.dataset.loadingStages || "")
+        .split("|")
+        .map((stage) => stage.trim())
+        .filter(Boolean);
+      const activeStages = stages.length ? stages : defaultStages;
+      let index = 0;
 
       if (message) {
         message.textContent = loadingText;
+      }
+      if (detail) {
+        detail.textContent = activeStages[index];
+        window.setInterval(() => {
+          index = Math.min(index + 1, activeStages.length - 1);
+          detail.textContent = activeStages[index];
+        }, 4800);
       }
 
       if (submitButton) {
@@ -36,6 +56,20 @@ function setupLoadingForms() {
       }
 
       overlay.style.display = "flex";
+    });
+  });
+}
+
+function setupTopicSuggestions() {
+  const topicInput = document.getElementById("topic");
+  if (!topicInput) {
+    return;
+  }
+
+  document.querySelectorAll("[data-topic]").forEach((button) => {
+    button.addEventListener("click", () => {
+      topicInput.value = button.dataset.topic || "";
+      topicInput.focus();
     });
   });
 }
@@ -55,4 +89,5 @@ function setupPasswordValidation() {
 
 setupPasswordToggles();
 setupLoadingForms();
+setupTopicSuggestions();
 setupPasswordValidation();

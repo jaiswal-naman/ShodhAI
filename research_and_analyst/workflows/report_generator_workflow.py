@@ -214,6 +214,11 @@ class AutonomousReportGenerator:
         """Assemble introduction, content, and conclusion into final report."""
         try:
             content = state["content"]
+            gathered_sources = []
+            for source in state.get("sources", []):
+                if source and source not in gathered_sources:
+                    gathered_sources.append(source)
+
             self.logger.info("Finalizing report compilation")
             if content.startswith("## Insights"):
                 content = content.strip("## Insights")
@@ -232,6 +237,10 @@ class AutonomousReportGenerator:
             )
             if sources:
                 final_report += "\n\n## Sources\n" + sources
+            elif gathered_sources:
+                final_report += "\n\n## Sources\n" + "\n".join(
+                    f"- {source}" for source in gathered_sources
+                )
 
             self.logger.info("Report finalized")
             return {"final_report": final_report}
@@ -386,6 +395,7 @@ class AutonomousReportGenerator:
                             "messages": [HumanMessage(content=f"So, let's discuss about {topic}.")],
                             "max_num_turns": 2,
                             "context": [],
+                            "sources": [],
                             "interview": "",
                             "sections": [],
                         },

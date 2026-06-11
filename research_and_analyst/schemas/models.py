@@ -59,6 +59,7 @@ class GenerateAnalystsState(TypedDict):
 class InterviewState(MessagesState):
     max_num_turns: int  # Max interview turns allowed
     context: Annotated[list, operator.add]  # Retrieved or searched context
+    sources: Annotated[list, operator.add]  # Source URLs used by this interview
     analyst: Analyst  # Analyst conducting interview
     interview: str  # Full interview transcript
     sections: list  # Generated section from interview
@@ -69,6 +70,7 @@ class ResearchGraphState(TypedDict):
     human_analyst_feedback: str  # Optional human feedback
     analysts: List[Analyst]  # All analysts involved
     sections: Annotated[list, operator.add]  # All interview-generated sections
+    sources: Annotated[list, operator.add]  # Source URLs gathered across interviews
     introduction: str  # Introduction of final report
     content: str  # Main content of report
     conclusion: str  # Conclusion of final report

@@ -1,10 +1,9 @@
 import uuid
-import os
-from fastapi.responses import FileResponse
 from research_and_analyst.utils.model_loader import ModelLoader
 from research_and_analyst.workflows.report_generator_workflow import AutonomousReportGenerator
 from research_and_analyst.logger import GLOBAL_LOGGER
 from research_and_analyst.exception.custom_exception import ResearchAnalystException
+from research_and_analyst.api.services.report_archive import ReportArchive
 from langgraph.checkpoint.memory import MemorySaver
 
 _shared_memory = MemorySaver()
@@ -45,7 +44,7 @@ class ReportService:
             self.logger.error("Error updating feedback", error=str(e))
             raise ResearchAnalystException("Failed to update feedback", e)
         
-    def get_report_status(self, thread_id: str):
+    def get_report_status(self, thread_id: str, username: str | None = None):
         """Fetch latest state or final report."""
         try:
             thread = {"configurable": {"thread_id": thread_id}}
@@ -57,10 +56,20 @@ class ReportService:
                 # now topic-based report folder name
                 file_docx = self.reporter.save_report(final_report, topic, "docx")
                 file_pdf = self.reporter.save_report(final_report, topic, "pdf")
+                archive_metadata = ReportArchive().store_report(
+                    topic=topic,
+                    username=username,
+                    final_report=final_report,
+                    docx_path=file_docx,
+                    pdf_path=file_pdf,
+                    sources=state.values.get("sources", []),
+                )
                 return {
                     "status": "completed",
                     "docx_path": file_docx,
                     "pdf_path": file_pdf,
+                    "final_report": final_report,
+                    "metadata": archive_metadata,
                 }
             return {"status": "in_progress"}
         except Exception as e:
@@ -70,12 +79,8 @@ class ReportService:
     @staticmethod
     def download_file(file_name: str):
         """Download generated report."""
-        report_dir = os.path.join(os.getcwd(), "generated_report")
-        for root, _, files in os.walk(report_dir):
-            if file_name in files:
-                return FileResponse(
-                    path=os.path.join(root, file_name),
-                    filename=file_name,
-                    media_type="application/octet-stream"
-                )
-        return None
+        return ReportArchive().download_file(file_name)
+
+    @staticmethod
+    def list_reports(username: str | None = None, limit: int = 6):
+        return ReportArchive().list_reports(username=username, limit=limit)

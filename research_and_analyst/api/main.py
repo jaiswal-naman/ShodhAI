@@ -1,23 +1,50 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
 import os
-from research_and_analyst.api.routes import report_routes
 from datetime import datetime
 
-app = FastAPI(title="ShodhAI — Research Report Generator")
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from research_and_analyst.api.routes import report_routes
+
+app = FastAPI(title="ShodhAI - Research Report Generator")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="research_and_analyst/api/templates")
-app.templates = templates  # so templates accessible inside router
+app.templates = templates
 
-# 🔹 ADD THIS FUNCTION
+
 def basename_filter(path: str):
     return os.path.basename(path)
 
-# 🔹 REGISTER FILTER
+
+def filesize_filter(size: int | str | None):
+    try:
+        value = int(size or 0)
+    except (TypeError, ValueError):
+        value = 0
+    if value >= 1024 * 1024:
+        return f"{value / (1024 * 1024):.1f} MB"
+    if value >= 1024:
+        return f"{value / 1024:.1f} KB"
+    return f"{value} B"
+
+
+def datetime_filter(value: str | None):
+    if not value:
+        return ""
+    try:
+        normalized = value.replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(normalized)
+        return parsed.strftime("%b %d, %Y %H:%M UTC")
+    except ValueError:
+        return value
+
+
 templates.env.filters["basename"] = basename_filter
+templates.env.filters["filesize"] = filesize_filter
+templates.env.filters["datetime"] = datetime_filter
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,15 +53,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#health check have been added
+
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for container orchestration"""
     return {
         "status": "healthy",
         "service": "shodhai",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
-# Register Routes
+
 app.include_router(report_routes.router)

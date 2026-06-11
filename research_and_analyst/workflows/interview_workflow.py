@@ -76,6 +76,11 @@ class InterviewGraphBuilder:
                 self.logger.warning("No search results found")
                 return {"context": ["[No search results found.]"]}
 
+            sources = [
+                doc.get("url")
+                for doc in search_docs
+                if doc.get("url") and doc.get("url") != "#"
+            ]
             formatted = "\n\n---\n\n".join(
                 [
                     f'<Document href="{doc.get("url", "#")}"/>\n{doc.get("content", "")}\n</Document>'
@@ -83,7 +88,7 @@ class InterviewGraphBuilder:
                 ]
             )
             self.logger.info("Web search completed", result_count=len(search_docs))
-            return {"context": [formatted]}
+            return {"context": [formatted], "sources": sources}
 
         except Exception as e:
             self.logger.error("Error during web search", error=str(e))

@@ -6,6 +6,12 @@ from research_and_analyst.api.services.report_service import ReportService
 
 router = APIRouter()
 SESSIONS = {}
+SAMPLE_TOPICS = [
+    "AI agents in healthcare operations",
+    "LLM security risks for enterprises",
+    "Autonomous research workflows in consulting",
+    "AI governance for financial services",
+]
 
 def get_db():
     db = SessionLocal()
@@ -13,6 +19,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def current_username(request: Request) -> str | None:
+    session_id = request.cookies.get("session_id")
+    return SESSIONS.get(session_id)
 
 # ------------------ AUTH ROUTES ------------------ #
 
@@ -61,10 +71,19 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    session_id = request.cookies.get("session_id")
-    if session_id not in SESSIONS:
+    username = current_username(request)
+    if not username:
         return RedirectResponse(url="/")
-    return request.app.templates.TemplateResponse("dashboard.html", {"request": request, "user": SESSIONS[session_id]})
+    recent_reports = ReportService.list_reports(username=username, limit=5)
+    return request.app.templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "user": username,
+            "recent_reports": recent_reports,
+            "sample_topics": SAMPLE_TOPICS,
+        },
+    )
 
 @router.post("/generate_report", response_class=HTMLResponse)
 async def generate_report(request: Request, topic: str = Form(...)):
@@ -88,9 +107,10 @@ async def submit_feedback(request: Request, topic: str = Form(...), feedback: st
     service.submit_feedback(thread_id, feedback)
 
     # Get latest report status
-    result = service.get_report_status(thread_id)
+    result = service.get_report_status(thread_id, username=current_username(request))
     doc_path = result.get("docx_path")
     pdf_path = result.get("pdf_path")
+    metadata = result.get("metadata") or {}
 
     return request.app.templates.TemplateResponse(
         "report_progress.html",
@@ -100,14 +120,19 @@ async def submit_feedback(request: Request, topic: str = Form(...), feedback: st
             "feedback": feedback,
             "doc_path": doc_path,
             "pdf_path": pdf_path,
+            "report_preview": result.get("final_report"),
+            "sources": metadata.get("sources", []),
+            "source_count": metadata.get("source_count", 0),
+            "docx_size": metadata.get("docx_size", 0),
+            "pdf_size": metadata.get("pdf_size", 0),
+            "created_at": metadata.get("created_at"),
             "thread_id": thread_id,
         },
     )
 
 @router.get("/download/{file_name}")
 async def download_report(file_name: str):
-    service = ReportService()
-    file_response = service.download_file(file_name)
+    file_response = ReportService.download_file(file_name)
     if file_response:
         return file_response
     return JSONResponse(

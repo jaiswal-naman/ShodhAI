@@ -25,10 +25,16 @@
         <h1>Generate a publication-ready research brief.</h1>
         <p class="subtitle">Start with a precise topic. ShodhAI will create analyst perspectives before producing the final export.</p>
 
-        <form id="generateForm" class="dashboard-form" action="/generate_report" method="post" data-loading-text="Preparing analysts...">
+        <form id="generateForm" class="dashboard-form" action="/generate_report" method="post" data-loading-text="Preparing analysts..." data-loading-stages="Creating analyst perspectives|Preparing feedback workspace">
           <div class="field">
             <label for="topic">Report topic</label>
             <input class="topic-input" type="text" id="topic" name="topic" required placeholder="Example: AI agents in enterprise compliance" autocomplete="off" />
+          </div>
+
+          <div class="topic-suggestions" aria-label="Suggested topics">
+            {% for sample_topic in sample_topics %}
+            <button type="button" class="suggestion" data-topic="{{ sample_topic }}">{{ sample_topic }}</button>
+            {% endfor %}
           </div>
 
           <button type="submit">Start research</button>
@@ -50,12 +56,44 @@
         </div>
       </aside>
     </main>
+
+    <section class="history-panel" aria-label="Recent reports">
+      <div>
+        <p class="eyebrow">Recent reports</p>
+        <h2>Pick up your latest outputs.</h2>
+      </div>
+
+      {% if recent_reports %}
+      <div class="history-grid">
+        {% for report in recent_reports %}
+        <article class="history-card">
+          <div>
+            <strong>{{ report.topic }}</strong>
+            <span>{{ report.created_at | datetime }}</span>
+          </div>
+          <div class="history-meta">
+            <span>{{ report.source_count }} sources</span>
+            <span>{{ report.docx_size | filesize }} DOCX</span>
+            <span>{{ report.pdf_size | filesize }} PDF</span>
+          </div>
+          <div class="history-actions">
+            <a href="/download/{{ report.docx_file }}">DOCX</a>
+            <a href="/download/{{ report.pdf_file }}">PDF</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted">Generated reports will appear here after your first completed run.</p>
+      {% endif %}
+    </section>
   </div>
 
   <div id="spinner-overlay" class="spinner-overlay" aria-live="polite">
     <div class="spinner-box">
       <div class="spinner"></div>
       <p>Preparing analysts...</p>
+      <span class="spinner-steps" data-spinner-steps>Creating analyst perspectives</span>
     </div>
   </div>
 

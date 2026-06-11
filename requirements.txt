@@ -18,5 +18,6 @@ aiofiles>=23.2.1
 sqlalchemy==2.0.43
 bcrypt==3.2.2
 passlib==1.7.4
+azure-storage-blob==12.27.1
 python-multipart
 -e .
