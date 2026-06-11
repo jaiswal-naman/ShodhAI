@@ -78,4 +78,4 @@ class ReportService:
                     filename=file_name,
                     media_type="application/octet-stream"
                 )
-        return {"error": f"File {file_name} not found"}
+        return None
