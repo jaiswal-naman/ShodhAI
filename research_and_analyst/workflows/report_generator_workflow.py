@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from typing import Optional
 from langgraph.types import Send
 from jinja2 import Template
+import requests
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../"))
@@ -36,6 +37,65 @@ from research_and_analyst.logger import GLOBAL_LOGGER
 from research_and_analyst.exception.custom_exception import ResearchAnalystException
 
 
+class WikipediaSearchResults:
+    """Real search fallback for environments without a Tavily API key."""
+
+    def __init__(self, max_results: int = 3):
+        self.max_results = max_results
+        self.api_url = "https://en.wikipedia.org/w/api.php"
+        self.headers = {
+            "User-Agent": "ShodhAI/0.1 (https://github.com/jaiswal-naman/ShodhAI)"
+        }
+
+    def invoke(self, query: str):
+        search_response = requests.get(
+            self.api_url,
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "srlimit": self.max_results,
+                "format": "json",
+            },
+            headers=self.headers,
+            timeout=15,
+        )
+        search_response.raise_for_status()
+        search_results = search_response.json().get("query", {}).get("search", [])
+        page_ids = [str(item["pageid"]) for item in search_results if item.get("pageid")]
+        if not page_ids:
+            return []
+
+        extract_response = requests.get(
+            self.api_url,
+            params={
+                "action": "query",
+                "prop": "extracts|info",
+                "exintro": True,
+                "explaintext": True,
+                "inprop": "url",
+                "pageids": "|".join(page_ids),
+                "format": "json",
+            },
+            headers=self.headers,
+            timeout=15,
+        )
+        extract_response.raise_for_status()
+        pages = extract_response.json().get("query", {}).get("pages", {})
+
+        results = []
+        for page_id in page_ids:
+            page = pages.get(page_id, {})
+            content = page.get("extract", "")
+            url = page.get("fullurl", "")
+            if not content or not url:
+                continue
+
+            results.append({"url": url, "content": content})
+
+        return results
+
+
 class AutonomousReportGenerator:
     """
     Handles the end-to-end autonomous report generation workflow using LangGraph.
@@ -45,10 +105,13 @@ class AutonomousReportGenerator:
         load_dotenv()
         self.llm = llm
         self.memory = MemorySaver()
-        self.tavily_search = TavilySearchResults(
-            tavily_api_key=os.getenv("TAVILY_API_KEY")
-        )
         self.logger = GLOBAL_LOGGER.bind(module="AutonomousReportGenerator")
+        tavily_api_key = os.getenv("TAVILY_API_KEY")
+        if tavily_api_key:
+            self.tavily_search = TavilySearchResults(tavily_api_key=tavily_api_key)
+        else:
+            self.logger.warning("TAVILY_API_KEY missing; using live Wikipedia search fallback")
+            self.tavily_search = WikipediaSearchResults()
 
     # ----------------------------------------------------------------------
     def create_analyst(self, state: GenerateAnalystsState):
